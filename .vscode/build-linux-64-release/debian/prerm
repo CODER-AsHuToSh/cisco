@@ -1,0 +1,7 @@
+#!/bin/sh -e
+
+if [ "$1" = remove -o "$1" = upgrade ]; then
+    rm -f /service/uup-example
+    svc -dx /etc/uup-example \
+            /etc/uup-example/log
+fi

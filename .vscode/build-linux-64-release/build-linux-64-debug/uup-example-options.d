@@ -1,0 +1,50 @@
+build-linux-64-debug/uup-example-options.o: \
+    ../../libkit/build-linux-64-debug/include/kit-fsevent.h \
+    ../../libkit/build-linux-64-debug/include/kit-queue.h \
+    ../lib-uup/build-linux-64-debug/conf-info-proto.h \
+    ../lib-uup/build-linux-64-debug/conf-loader-proto.h \
+    ../lib-uup/build-linux-64-debug/conf-proto.h \
+    ../lib-uup/build-linux-64-debug/conf-worker-proto.h \
+    ../lib-uup/build-linux-64-debug/digest-store-proto.h \
+    ../lib-uup/build-linux-64-debug/key-value-config-proto.h \
+    ../lib-uup/build-linux-64-debug/key-value-entry-proto.h \
+    ../lib-uup/build-linux-64-debug/netsock-proto.h \
+    ../lib-uup/build-linux-64-debug/pref-segments-proto.h \
+    ../lib-uup/conf-info.h \
+    ../lib-uup/conf-loader.h \
+    ../lib-uup/conf-worker.h \
+    ../lib-uup/conf.h \
+    ../lib-uup/digest-store.h \
+    ../lib-uup/key-value-config.h \
+    ../lib-uup/key-value-entry.h \
+    ../lib-uup/netsock.h \
+    ../lib-uup/pref-segments.h \
+    ./uup-example-options.h \
+    uup-example-options.c \
+    GNUmakefile
+
+build-linux-64-debug/uup-example-options.d:: \
+    ../../libkit/build-linux-64-debug/include/kit-fsevent.h \
+    ../../libkit/build-linux-64-debug/include/kit-queue.h \
+    ../lib-uup/build-linux-64-debug/conf-info-proto.h \
+    ../lib-uup/build-linux-64-debug/conf-loader-proto.h \
+    ../lib-uup/build-linux-64-debug/conf-proto.h \
+    ../lib-uup/build-linux-64-debug/conf-worker-proto.h \
+    ../lib-uup/build-linux-64-debug/digest-store-proto.h \
+    ../lib-uup/build-linux-64-debug/key-value-config-proto.h \
+    ../lib-uup/build-linux-64-debug/key-value-entry-proto.h \
+    ../lib-uup/build-linux-64-debug/netsock-proto.h \
+    ../lib-uup/build-linux-64-debug/pref-segments-proto.h \
+    ../lib-uup/conf-info.h \
+    ../lib-uup/conf-loader.h \
+    ../lib-uup/conf-worker.h \
+    ../lib-uup/conf.h \
+    ../lib-uup/digest-store.h \
+    ../lib-uup/key-value-config.h \
+    ../lib-uup/key-value-entry.h \
+    ../lib-uup/netsock.h \
+    ../lib-uup/pref-segments.h \
+    ./uup-example-options.h \
+    uup-example-options.c \
+    GNUmakefile
+	$(MAKE_RUN) $(TOUCH) build-linux-64-debug/uup-example-options.d

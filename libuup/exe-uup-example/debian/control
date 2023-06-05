@@ -1,0 +1,11 @@
+Source: uup-example-service
+Maintainer: cie-eng.dns-platform@cisco.com
+Section: net
+Priority: extra
+Build-Depends: debhelper (>= 8)
+Standards-Version: 3.7.2
+
+Package: uup-example-service
+Architecture: any
+Depends: daemontools, daemontools-run, libcjson1, opendns-multilog
+Description: Umbrella Unified Policy Example

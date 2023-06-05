@@ -1,0 +1,6 @@
+{
+    "cmake.sourceDirectory": "/home/ashugup3/uup/cJSON",
+    "files.associations": {
+        "in.h": "c"
+    }
+}

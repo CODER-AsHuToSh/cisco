@@ -1,0 +1,43 @@
+#! /bin/sh
+
+set -e
+set -x
+
+make realclean
+
+make convention
+
+mkdir -p output
+
+build() {
+    type=$1
+
+    # Need to translate 'coverage' to 'release-coverage'
+    case "$type" in
+    coverage)
+        build_dir="release-coverage"
+        ;;
+    *)
+        build_dir=$type
+        ;;
+    esac
+
+    MAKE_DEBS=1 make $type test
+
+    # Move the results of the build to the output directory
+    outdir="output/$type"
+    mkdir -p $outdir
+    cp -rp libuup/build-linux-64-${build_dir}/* $outdir
+
+    # Move any debian packages that were created to the output directory
+    for deb in `find libuup -name "*.deb"`; do
+        cp $deb $outdir
+    done
+}
+
+build debug
+
+build release
+
+build coverage
+

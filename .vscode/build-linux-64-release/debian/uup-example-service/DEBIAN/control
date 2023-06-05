@@ -1,0 +1,9 @@
+Package: uup-example-service
+Version: 0.1-dev
+Architecture: amd64
+Maintainer: cie-eng.dns-platform@cisco.com
+Installed-Size: 1833
+Depends: daemontools, daemontools-run, libcjson1, opendns-multilog
+Section: net
+Priority: extra
+Description: Umbrella Unified Policy Example

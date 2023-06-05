@@ -1,0 +1,49 @@
+Certificate:
+    Data:
+        Version: 1 (0x0)
+        Serial Number:
+            ea:5d:27:5e:74:78:50:86
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: CN=*.sophoswdx.com, O=Engineering, C=CA, ST=British Columbia, L=Vancouver
+        Validity
+            Not Before: May 24 22:39:35 2012 GMT
+            Not After : May 22 22:39:35 2022 GMT
+        Subject: CN=*.sophoswdx.com, O=Engineering, C=CA, ST=British Columbia, L=Vancouver
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (1024 bit)
+                Modulus (1024 bit):
+                    00:a3:cc:01:a4:82:96:7b:a3:93:3e:26:af:59:6b:
+                    1e:36:e3:6f:0e:60:be:30:30:bb:ec:7a:2d:0e:6a:
+                    e6:7e:88:16:02:80:e5:f2:79:10:02:20:5c:fd:b4:
+                    04:32:3e:8e:24:b7:72:f7:bd:29:73:5b:33:d3:32:
+                    ec:e1:0e:2c:ea:3b:e9:a3:fb:c5:e1:0a:13:d7:f1:
+                    d9:38:ba:ff:06:72:cc:e6:02:46:c2:b0:24:19:fd:
+                    ec:ee:c6:00:23:a4:7a:c9:05:1d:e3:73:d6:04:4b:
+                    72:16:78:c6:7c:83:47:5b:09:e6:eb:2b:d5:72:52:
+                    1d:2c:c9:e4:2e:4b:17:1c:dd
+                Exponent: 65537 (0x10001)
+    Signature Algorithm: sha1WithRSAEncryption
+        36:cd:1c:e8:1c:1f:ff:2a:20:bc:29:9b:ed:35:cf:7f:12:a8:
+        49:bf:43:9a:dc:b5:fe:ae:55:bb:b0:95:a7:7c:75:f3:f3:95:
+        28:7f:b5:cb:b3:f1:34:5f:f8:86:88:77:05:3b:2a:e4:40:4e:
+        bb:7b:34:9e:c4:3a:b0:41:4f:c8:82:b5:c9:f9:0d:6d:f1:e8:
+        6c:80:37:2f:31:08:c5:cd:b6:50:aa:53:38:7a:78:af:da:65:
+        15:eb:1a:ef:ee:a7:8b:af:19:88:86:15:f8:f7:7f:49:12:f5:
+        c3:80:f3:99:ca:11:ac:30:f0:cf:0e:cb:0a:08:49:84:97:ca:
+        59:70
+-----BEGIN CERTIFICATE-----
+MIICTzCCAbgCCQDqXSdedHhQhjANBgkqhkiG9w0BAQUFADBsMRgwFgYDVQQDDA8q
+LnNvcGhvc3dkeC5jb20xFDASBgNVBAoMC0VuZ2luZWVyaW5nMQswCQYDVQQGEwJD
+QTEZMBcGA1UECAwQQnJpdGlzaCBDb2x1bWJpYTESMBAGA1UEBwwJVmFuY291dmVy
+MB4XDTEyMDUyNDIyMzkzNVoXDTIyMDUyMjIyMzkzNVowbDEYMBYGA1UEAwwPKi5z
+b3Bob3N3ZHguY29tMRQwEgYDVQQKDAtFbmdpbmVlcmluZzELMAkGA1UEBhMCQ0Ex
+GTAXBgNVBAgMEEJyaXRpc2ggQ29sdW1iaWExEjAQBgNVBAcMCVZhbmNvdXZlcjCB
+nzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAo8wBpIKWe6OTPiavWWseNuNvDmC+
+MDC77HotDmrmfogWAoDl8nkQAiBc/bQEMj6OJLdy970pc1sz0zLs4Q4s6jvpo/vF
+4QoT1/HZOLr/BnLM5gJGwrAkGf3s7sYAI6R6yQUd43PWBEtyFnjGfINHWwnm6yvV
+clIdLMnkLksXHN0CAwEAATANBgkqhkiG9w0BAQUFAAOBgQA2zRzoHB//KiC8KZvt
+Nc9/EqhJv0Oa3LX+rlW7sJWnfHXz85Uof7XLs/E0X/iGiHcFOyrkQE67ezSexDqw
+QU/IgrXJ+Q1t8ehsgDcvMQjFzbZQqlM4eniv2mUV6xrv7qeLrxmIhhX4939JEvXD
+gPOZyhGsMPDPDssKCEmEl8pZcA==
+-----END CERTIFICATE-----

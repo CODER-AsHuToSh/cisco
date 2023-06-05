@@ -1,0 +1,17 @@
+#!/bin/sh -e
+
+if [ "$1" = configure ]; then
+    [ -L /service ] || ln -fs /etc/service  /service
+    ln -fs /etc/uup-example /service/uup-example
+
+    chmod 755 /etc/uup-example
+
+    # Configure log pipes and services
+    for pipe in graphitelog; do
+        if [ ! -p /etc/uup-example/$pipe ]; then
+            rm -fr /etc/uup-example/$pipe
+            mkfifo /etc/uup-example/$pipe
+        fi
+        chmod 600 /etc/uup-example/$pipe
+    done
+fi

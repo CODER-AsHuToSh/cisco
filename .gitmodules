@@ -1,0 +1,21 @@
+[submodule "libjemalloc"]
+	path = libjemalloc
+	url = git@github.office.opendns.com:OpenDNS/libjemalloc.git
+[submodule "mak"]
+	path = mak
+	url = git@github.office.opendns.com:OpenDNS/mak.git
+[submodule "libsxe"]
+	path = libsxe
+	url = git@github.office.opendns.com:OpenDNS/libsxe.git
+[submodule "libkit"]
+	path = libkit
+	url = git@github.office.opendns.com:OpenDNS/libkit.git
+[submodule "libuup"]
+	path = libuup
+	url = git@github.office.opendns.com:SRE/libuup.git
+[submodule "aws-build"]
+	path = aws-build
+	url = git@github.office.opendns.com:OpenDNS/aws-build.git
+[submodule "cJSON"]
+	path = cJSON
+	url = git@github.office.opendns.com:OpenDNS/cJSON.git

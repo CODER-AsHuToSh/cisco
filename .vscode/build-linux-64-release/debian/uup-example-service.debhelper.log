@@ -1,0 +1,11 @@
+dh_prep
+dh_install
+dh_installchangelogs
+dh_compress
+dh_link
+dh_gencontrol
+dh_installdeb
+dh_shlibdeps
+dh_md5sums
+dh_fixperms
+dh_builddeb

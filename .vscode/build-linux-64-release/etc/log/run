@@ -1,0 +1,3 @@
+#!/bin/sh
+
+exec opendns-multilog u n10 s10000000 .

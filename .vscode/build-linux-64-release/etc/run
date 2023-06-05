@@ -1,0 +1,51 @@
+#!/bin/bash -x
+
+exec 2>&1
+
+# Set defaults for command line arguments
+config_directory=/service/uup-example/config
+last_good=/service/uup-example/last-good
+graphitelog=/service/uup-example/graphitelog
+address=0.0.0.0
+
+# This function is intended for invocation (via trap) in response to
+# interruption of the wait builtin by a signal, so that $? holds wait's
+# exit status.  That status is examined to identify the interrupting
+# signal, which is relayed to $child_pid.
+relay_signal_from_wait () {
+    wait_status=$?
+    signal=$(($wait_status - 128))
+
+    [ $signal -gt 0 -a "$child_pid" ] || return
+    kill -$signal $child_pid
+}
+ulimit="ulimit -c unlimited && ulimit -n 10000"
+
+# Set SXE logging levels
+export SXE_LOG_LEVEL=7
+export SXE_LOG_LEVEL_LIBUUP=5
+
+# Create a directory for md5 digests of loaded config files (the directory is
+# set in the options file rather than command line)
+mkdir digests
+
+# Load (or overload) any additional configuration info
+[ ! -f /etc/uup-example/run.conf ] || . /etc/uup-example/run.conf
+[ ! -f /etc/uup-example/run.conf.local ] || . /etc/uup-example/run.conf.local
+
+[ -d "$config_directory" ] || mkdir -p $config_directory
+[ -d "$last_good" ] || mkdir -p $last_good
+
+# Setup the command line arguments
+opts=""
+[ -z "$config_directory" ]  || opts="$opts -f $config_directory"
+[ -z "$last_good" ]         || opts="$opts -s $last_good"
+[ -z "$graphitelog" ]       || opts="$opts -G $graphitelog"
+[ -z "$address" ]           || opts="$opts -a $address"
+
+sh -c "$ulimit && exec uup-example $opts" &
+
+# Relay selected signals to the child until it exits.
+child_pid=$!
+trap relay_signal_from_wait HUP ALRM INT TERM
+while wait; [ $? -gt 128 ]; do :; done

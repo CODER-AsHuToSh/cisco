@@ -1,0 +1,232 @@
+#!/usr/bin/env groovy
+
+// PLEASE NOTE:
+// This pipeline is currently used within 3 types of jobs:
+// 1. The multibranch pipeline job aimed to build PRs only
+// 2. The job to build DEV branches
+// 3. The job to build Master branch
+// There are some traits in configuration of those 3 types of jobs.
+// Have a look at https://confluence.it.umbrella.com/display/trac3/Static+Code+Analysis%3A+SonarQube+implementation for details
+
+@Library("thor-shared-pipelines") _
+
+pullRequestBuild = env.CHANGE_TARGET ? true : false;
+sonarHostURL='https://sonar.cdaas.umbrella.com';
+sonarToolsDownloadURLs = [
+    "${sonarHostURL}/static/cpp/build-wrapper-linux-x86.zip",
+    'https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip'
+];
+sonarParameters = '';
+gitBranchToBuild = '';
+gitRefSpec = '+refs/heads/*:refs/remotes/origin/*';
+
+if (!pullRequestBuild) {
+    properties([
+        parameters([
+            string(name: 'BRANCH_TO_BUILD',
+                description: 'Git branch to build',
+                defaultValue: 'master'
+            ),
+            booleanParam(name: 'SCAN_WITH_SONAR',
+                        description: 'Do you want to scan source code with Sonar?',
+                        defaultValue: false
+            )
+        ])
+    ]);
+} else {
+    gitRefSpec = "+refs/pull/*/head:refs/remotes/origin/PR-* " +
+                 "+refs/heads/${env.CHANGE_TARGET}:refs/remotes/origin/${env.CHANGE_TARGET}";
+    properties([
+        pipelineTriggers([
+            [$class: 'GitHubPushTrigger']
+        ])
+    ]);
+}
+
+pipeline {
+    agent {
+        label 'base';
+    }
+
+    options {
+        disableConcurrentBuilds();
+        timestamps();
+        ansiColor('xterm');
+        buildDiscarder(logRotator(numToKeepStr: '30', daysToKeepStr: '30'));
+    }
+
+    stages {
+        // We can't use the default Jenkins Checkout stage (at least for now)
+        // because we have to check out into a sub-directory instead of the
+        // root of $WORKSPACE. To work with PRs and branches within the same
+        // pipeline we have to modify git ref specs
+        stage('Checkout') {
+            steps {
+                script {
+                    gitBranchToBuild = pullRequestBuild ? env.GIT_BRANCH : params.BRANCH_TO_BUILD;
+                    gitBranchToBuild = gitBranchToBuild.replaceAll('origin/', '');
+                    currentBuild.displayName = "#${env.BUILD_NUMBER} - ${gitBranchToBuild}";
+                }
+                dir('source/libsxe') {
+                    checkout([$class: 'GitSCM',
+                        branches: [[name: gitBranchToBuild]],
+                        userRemoteConfigs: [[
+                            credentialsId: 'tahoe-jenkins-gen-ssh',
+                            url: env.GIT_URL,
+                            refspec: gitRefSpec
+                        ]]
+                    ]);
+                    withCredentials([gitUsernamePassword(credentialsId: 'tahoe-jenkins.gen',
+                                     gitToolName: 'git-tool')]) {
+                            sh '''
+                                git pull --allow-unrelated-histories \
+                                    https://github.office.opendns.com/OpenDNS/zeus-build.git \
+                                    beta-sig
+                            '''
+                    }
+                }
+                dir('source/mak') {
+                    git credentialsId: 'tahoe-jenkins-gen-ssh',
+                        url: 'git@github.office.opendns.com:OpenDNS/mak.git';
+                }
+            }
+        }
+        stage('Setup Sonar Scanning') {
+            when {
+                expression { pullRequestBuild || params.SCAN_WITH_SONAR || gitBranchToBuild == 'master' }
+            }
+            steps {
+                script {
+                    // Download and extract Sonar tools (at least for now)
+                    // because our builder Docker image doesn't contain these tools
+                    sonarToolsDownloadURLs.each {
+                        fileName = it.split('/')[-1].split('-')[0..1].join('-');
+                        sh """
+                            curl -o "${fileName}".zip "${it}"
+                            unzip "${fileName}".zip
+                            rm -f "${fileName}".zip
+                            mv "${fileName}"* "${fileName}"
+                        """
+                    }
+
+                    // Prepare Sonar parameters
+                    withCredentials([string(credentialsId: 'cdaas-prod-sonar-athena', variable: 'TOKEN')]) {
+                        sonarParameters = "sonar.host.url=${sonarHostURL}\n" +
+                            "sonar.login=${TOKEN}\n" +
+                            "sonar.projectKey=athena_libsxe\n" +
+                            "sonar.projectName=libsxe\n" +
+                            "sonar.cpp.file.suffixes=-\n" +
+                            "sonar.objc.file.suffixes=-\n" +
+                            "sonar.sources=.\n" +
+                            "sonar.exclusions=**/test/*.c\n" +
+                            "sonar.tests=.\n" +
+                            "sonar.test.inclusions=**/test/*.c\n" +
+                            "sonar.cfamily.build-wrapper-output=build_wrapper_output\n" +
+                            "sonar.cfamily.cache.enabled=false\n" +
+                            "sonar.cfamily.gcov.reportsPath=\n" +
+                            "sonar.sourceEncoding=UTF-8\n";
+                    }
+                    if (pullRequestBuild) {
+                        sonarParameters = sonarParameters +
+                            "sonar.scm.revision=refs/pull/${env.CHANGE_ID}/head\n" +
+                            "sonar.pullrequest.provider=GitHub\n" +
+                            "sonar.pullrequest.github.repository=OpenDNS/libsxe\n" +
+                            "sonar.pullrequest.key=${env.CHANGE_ID}\n" +
+                            "sonar.pullrequest.branch=${gitBranchToBuild}\n" +
+                            "sonar.pullrequest.github.endpoint=https://github.office.opendns.com/api/v3\n" +
+                            "sonar.pullrequest.base=${env.CHANGE_TARGET}\n";
+                    } else {
+                        sonarParameters = sonarParameters +
+                            "sonar.scm.provider=git\n" +
+                            "sonar.branch.name=${gitBranchToBuild}\n";
+                    }
+                    // Save Sonar parameters into its config file
+                    withEnv(["SONAR_PARAMETERS=${sonarParameters}"]) {
+                        sh '''
+                            set +x
+                            echo "$SONAR_PARAMETERS" > sonar-scanner/conf/sonar-scanner.properties
+                        '''
+                    }
+                }
+            }
+        }
+        stage('Build') {
+            environment {
+                CONTAINER_NAME = env.JOB_NAME.replaceAll('/', '_');
+                PATH="/data/build-wrapper:/data/sonar-scanner/bin:${env.PATH}";
+            }
+            steps {
+                script {
+                    def dockerCommand = 'make debug test && ' +
+                                    'make release test && ' +
+                                    'make coverage test|| exit 1';
+
+                    if (pullRequestBuild || params.SCAN_WITH_SONAR || gitBranchToBuild == 'master') {
+                        dockerCommand = 'build-wrapper-linux-x86-64 ' +
+                                        '--out-dir build_wrapper_output ' +
+                                        dockerCommand + '; ' +
+                                        'jenkins/sonar_coverage_prepare.sh && ' +
+                                        'sonar-scanner';
+                    }
+
+                    withStreamline(credentialsId: 'QUADRA_SL_AUTH', quadra: 'true', registryLogin: 'true') {
+                        sh """
+                            docker rm -f $CONTAINER_NAME || true
+                            docker run --rm --name $CONTAINER_NAME \
+                                -w /data/source/libsxe \
+                                -e ZEUS_BUILD_TOOLS_ROOT=/data/source/libsxe \
+                                -e WORKSPACE=/data/source/libsxe \
+                                -e GIT_BRANCH="${gitBranchToBuild}" \
+                                -e BUILD_NUMBER \
+                                -e PATH \
+                                -v $WORKSPACE:/data:rw \
+                                registry.strln.net/signginx/debian-stretch-builder \
+                                sh -c "${dockerCommand} && \
+                                    .jenkins-build/build-packages.sh opendns-libsxe-dev-package-config.sh"
+                        """
+                    }
+                }
+            }
+        }
+        // We can't use "waitForQualityGate" from Jenkins plugin here
+        // because we don't use the "sonar-scanner" from the plugin
+        stage('SonarQube Quality Gate') {
+            when {
+                expression { pullRequestBuild || params.SCAN_WITH_SONAR || gitBranchToBuild == 'master' }
+            }
+            steps {
+                dir('source/libsxe') {
+                    withCredentials([string(credentialsId: 'cdaas-prod-sonar-athena', variable: 'TOKEN')]) {
+                        withEnv(['SONAR_FILE=.scannerwork/report-task.txt']) {
+                            script { sh '$WORKSPACE/jenkins/sonar_quality_gate.sh'; }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            dir('source/libsxe/packages') {
+                script {
+                    if (!pullRequestBuild) {
+                        artifact_file = sh(script: 'ls', returnStdout: true).trim();
+                        SendToNexus(
+                            credentials: 'cdaas-nexus-bot-credentials',
+                            repositoryName: 'athena/packages',
+                            artifactName: env.JOB_NAME,
+                            artifact: artifact_file,
+                            artifactVersion: env.BUILD_NUMBER
+                        )
+                        currentBuild.description = "https://nexus.cdaas.umbrella.com/repository/athena/packages/" +
+                            "${env.JOB_NAME}/" + "${env.BUILD_NUMBER}/" + "${artifact_file}";
+                    }
+                }
+            }
+        }
+        cleanup {
+            cleanWs(); /* clean up our workspace */
+        }
+    }
+}

@@ -1,0 +1,151 @@
+#! /usr/bin/env python3
+
+import sys
+import shutil
+import signal
+import os
+import os.path
+import configparser
+from lib.AWSBuilder import AWSBuilder, AWSInstance
+from argparse import ArgumentParser
+
+PROGPATH = os.path.dirname(os.path.realpath(__file__))
+
+parser = ArgumentParser()
+parser.add_argument("-a", "--arch", action="append", dest="arch", required=True, help="The architecture(s) to build, each optionally followed by ':[awstype][:extra-command-args]'")
+parser.add_argument("-b", "--branch", dest="branch", help="The branch to build, defaults to cloning '.'")
+parser.add_argument("-c", "--config", dest="config", help="The remotely run script used to configure the machine")
+parser.add_argument("-i", "--identity", dest="identity", default="{}/etc/aws-builder".format(PROGPATH), help="ssh identity, default 'etc/aws-builder'")
+kgroup = parser.add_mutually_exclusive_group()
+kgroup.add_argument("-k", "--keeponfailure", dest="keeponfailure", action="store_true", help="Keep the AWS instance on failure")
+kgroup.add_argument("-K", "--keepalways", dest="keepalways", action="store_true", help="Keep the AWS instance on completion")
+parser.add_argument("-n", "--name", dest="name", default="aws", help="The builder name, default 'aws'")
+parser.add_argument("-o", "--output", dest="output", default='output', help="The output directory - copy remote <dir> to local <dir>/<arch>, default 'output'")
+parser.add_argument("-p", "--profile", dest="profile", help="The AWS configuration profile, defaults to the global profile")
+parser.add_argument("-r", "--region", dest="region", default="us-west-1", help="The AWS region, default: 'us-west-1'")
+parser.add_argument("-s", "--subnet", dest="subnet", default="private-a", help="The AWS subnet name, default 'private-a'")
+parser.add_argument("-t", "--tags", dest="tags", required=True, help="The team name necessary to apply the relevant AWS tags. This can also be the path to a file containing the tags in 'key=value' format. For example., dns, brain, etc/dns.tags")
+parser.add_argument("-T", "--terminate", dest="terminate", type=int, default=24, help="Terminate the instance after this number of hours (0=off), default '24'")
+kgroup.add_argument("-u", "--unsecure", dest="unsecure", action="store_true", help="SSH access to the aws-build slaves is open to the entire world")
+parser.add_argument("-v", "--volumesize", dest="volumesize", type=int, default=0, help="Size of the primary volume, in GB")
+parser.add_argument("-V", "--vpc", dest="vpc", default="default", help="The AWS VPC name, default: 'default'")
+parser.add_argument("command", help="The remotely run build command")
+parser.add_argument("args", nargs="*", help="The remotely run build arguments")
+args = parser.parse_args()
+
+sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 1)
+
+try: os.makedirs(args.output)
+except: pass
+
+proc  = {}
+rcode = 1
+
+for arch in args.arch:
+    extra_args = None
+    colon = arch.find(':')
+
+    if colon > 0:
+        awstype = arch[colon + 1:]
+        arch = arch[:colon]
+        colon = awstype.find(':')
+
+        if colon >= 0:
+            extra_args = awstype[colon + 1:]
+            awstype = awstype[:colon] if colon > 0 else None
+    else:
+        awstype = None
+
+    pid = os.fork() if len(args.arch) > 1 else 0
+
+    if pid:
+        proc[pid] = arch
+
+    else:    # This is a child process if there are multiple architectures, otherwise it's the main process.
+        keep = True if args.keeponfailure or args.keepalways else False
+        command = [args.command]
+        command.extend(args.args)
+
+        if extra_args:
+            command.append(extra_args)
+
+        print("{}: Run {}".format(arch, command))
+        builder = AWSBuilder(profile=args.profile, region=args.region, subnet=args.subnet, type=args.name, vpc=args.vpc, unsecure=args.unsecure, tags=args.tags)
+        print('{}: Using vpc {}, subnet {}'.format(arch, builder.get_vpc(), builder.get_subnet()))
+
+        # print("Instances:");
+        # for i in builder.find_instances():
+        #     print("    {}".format(i))
+
+        with AWSInstance(args.region, builder, arch, args.identity, args.unsecure, args.volumesize, awstype, keep=keep) as aws:
+            print('{}: Starting instance {}, IP {} in {} Mode'.format(arch, aws.get_instance(), aws.get_IPv4(), 'Unsecure' if args.unsecure else 'Secure'))
+
+            try: shutil.rmtree('{}/{}'.format(args.output, arch))
+            except: pass
+
+            # If we have custom environment variables, prepend them to our execution command
+            if hasattr(aws, 'env'):
+                for e in aws.env:
+                    command.insert(0, e)
+
+            aws.wait_until_ready()
+
+            if args.terminate or args.branch:
+                inst = []
+
+                if args.branch:
+                    inst.append('git')
+
+                if args.terminate and 'FreeBSD' not in arch:
+                    inst.append('at')
+
+                if len(inst) > 0 and aws.ssh(aws.packageinstall.format(' '.join(inst)), prefix='{}: install'.format(arch), verbose=True):
+                    break
+
+            if args.terminate and aws.ssh('echo poweroff | sudo at now + {} hours'.format(args.terminate),
+                                          prefix='{}: Scheduled poweroff'.format(arch), verbose=True):
+                break
+
+            if args.branch and (
+                aws.ssh("git clone -b {} git@github.office.OpenDNS.com:OpenDNS/opendnscache.git workspace".format(args.branch),
+                        prefix='{}: git clone'.format(arch), verbose=True) != 0 or
+                aws.ssh("git submodule init", prefix='{}: git clone'.format(arch), cd='workspace', verbose=True) != 0 or
+                aws.ssh("mkdir {}".format(args.output), prefix='{}: mkdir {}'.format(arch, args.output), cd='workspace',
+                        verbose=True) != 0):
+                break
+            elif not args.branch and not aws.rsync(local=os.getcwd(), remote='workspace', up=True, recursive=True, verbose=True, exclude=args.output):
+                break
+            else:
+                if args.config and aws.ssh(args.config, prefix='{}: init'.format(arch), cd='workspace', verbose=True):
+                    break
+
+                if aws.ssh(' '.join(command), prefix='{}: build'.format(arch), cd='workspace', verbose=True):
+                    break
+
+                if not aws.rsync(remote='workspace/{}'.format(args.output), local='{}/{}'.format(args.output, arch), down=True, recursive=True, verbose=True):
+                    break
+
+            if not args.keepalways:
+                aws.keep(False)
+
+        rcode = 0
+        break
+
+if pid == 0:   # If a child process broke the loop, exit with the correct status
+    os._exit(rcode)
+
+rcode = 0
+
+while proc:
+    ret = os.wait()
+    arch = proc.pop(ret[0])
+
+    if arch and ret[1]:
+        print('{}: exit {}'.format(arch, ret[1]))
+
+        for pid in proc:
+            os.kill(pid, signal.SIGTERM)
+
+        rcode += 1
+
+sys.exit(rcode)

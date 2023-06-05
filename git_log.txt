@@ -1,0 +1,72 @@
+--3fef126--2023-02-01--Emil Filipov
+1	1	aws-build
+
+--81a51f9--2022-04-04--Adam Phelps
+1	1	libuup
+
+--eda30fe--2022-03-03--Adam Phelps
+4	5	autobuild
+1	1	aws-build
+1	1	libkit
+1	1	libsxe
+1	1	libuup
+3	2	scripts/dev-setup.sh
+
+--4fd28de--2021-05-21--Jim Belton
+1	1	libuup
+
+--938ae6c--2021-05-20--Jim Belton
+1	1	aws-build
+1	1	libkit
+1	1	libuup
+
+--4d08d2c--2021-04-06--Jim Belton
+1	1	libuup
+
+--cab4bdd--2021-03-31--Jim Belton
+5	3	autobuild
+
+--554d427--2021-03-31--Jim Belton
+1	1	libuup
+
+--e35f4ad--2021-03-31--Jim Belton
+2	1	scripts/dev-setup.sh
+
+--3911f47--2021-03-31--Jim Belton
+1	1	libuup
+1	1	scripts/dev-setup.sh
+
+--48c579b--2021-03-30--Jim Belton
+3	0	.gitmodules
+13	5	GNUmakefile
+1	0	cJSON
+1	1	scripts/dev-setup.sh
+
+--7c93369--2021-03-29--Jim Belton
+36	0	scripts/dev-setup.sh
+
+--e5bda05--2021-03-29--Jim Belton
+3	0	.gitmodules
+1	0	aws-build
+
+--381cd23--2021-03-26--Jim Belton
+17	21	GNUmakefile
+42	0	autobuild
+1	1	libkit
+1	1	libsxe
+1	1	libuup
+1	1	mak
+
+--4d1e065--2021-02-10--Jim Belton
+1	1	GNUmakefile
+1	1	libuup
+
+--618aeab--2020-12-16--Jim Belton
+15	0	.gitmodules
+29	0	GNUmakefile
+3	0	README.md
+1	0	libjemalloc
+1	0	libkit
+1	0	libsxe
+1	0	libuup
+1	0	mak

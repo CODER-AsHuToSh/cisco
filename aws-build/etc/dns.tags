@@ -1,0 +1,11 @@
+# This is a sample tags configuration file meant to serve as an example
+Owner=cie-eng.dns-team@cisco.com
+Environment=NonProd
+Project=SRE
+CiscoMailAlias=cie-eng.dns@cisco.com
+DataClassification=Cisco Confidential
+DataTaxonomy=Cisco Operations Data
+ResourceOwner=SBG CIE DNS Engineering
+ApplicationName=Jenkins build slave
+ProductFamilyName=DNS SEC
+IntendedPublic=False

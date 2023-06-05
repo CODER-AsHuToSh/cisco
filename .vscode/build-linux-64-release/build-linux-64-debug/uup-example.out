@@ -1,0 +1,2 @@
+cc -o build-linux-64-debug/uup-example build-linux-64-debug/uup-example.o build-linux-64-debug/uup-example-config.o build-linux-64-debug/uup-example-options.o build-linux-64-debug/uup-example-rules.o ../lib-crl/build-linux-64-debug/crl.a ../lib-uup/build-linux-64-debug/uup.a -g -lm -ldl ../../libkit/build-linux-64-debug/libkit.a ../../libjemalloc/build-linux-64-debug/jemalloc.a ../../libsxe/build-linux-64-debug/libsxe.a -lcjson -lcrypto -pthread -lz -lbsd
+cp -f build-linux-64-debug/uup-example ../build-linux-64-debug

@@ -1,0 +1,8 @@
+digest_store_dir         digests
+# digest_store_freq      30
+# digest_store_period    900
+# infolog_flags          0xff
+# graphitelog_interval   60
+# graphitelog_json_limit 25
+example_option           123
+unimplemented_option?    this.isnt.used.in.the.code

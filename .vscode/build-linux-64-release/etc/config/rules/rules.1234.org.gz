@@ -1,0 +1,11 @@
+rules 2
+count 4
+[rules:4]
+rule_id:=1, data:="Just one"
+(value = 1): (one)
+rule_id:=2, data:="Positive"
+(value > 1): (lots)
+rule_id:=3, data:="Zero"
+(value = 0): (nothing)
+rule_id:=4
+(value < 0): (negative)
