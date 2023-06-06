@@ -66,6 +66,7 @@ options:
 ```
 $ ./libuup/exe-uup-example/build-linux-64-release/uup-example -f ./libuup/exe-uup-example/etc/config
 $ ./libuup/exe-uup-example/build-linux-64-debug/uup-example -f ./libuup/exe-uup-example/etc/config
+$ ./build-linux-64-debug/uup-example -f ./etc/config
 ```
 
 * Send data to the application to evaluate rules.

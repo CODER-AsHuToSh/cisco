@@ -46,11 +46,18 @@ uup_example_rules_start(struct uup_example_config *config)
     args->port = config->rules_port;
     args->addr = config->rules_addr;
 
+
+
+
+
     if ((ret = pthread_create(&config->rules_thr, NULL, uup_example_rules_thread, args)) != 0) {
         SXEL1(": pthread_create failed to launch rukes thread: %s", strerror(ret));
         ret = false;
         goto ERROR_OUT;
     }
+
+
+
 
     ret = true;
 

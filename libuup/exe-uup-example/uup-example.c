@@ -18,27 +18,17 @@
 #include "crl.h"
 #include "uup-example-config.h"
 #include "uup-example-options.h"
-#include "uup-example-rules.h"
+#include "uup-rules.h"
+#include <time.h>
+#include <sys/time.h>
+
+// #include "cJSON.h"
+
 
 /**
  * Print usage text
  */
-static void
-uup_example_usage(void)
-{
-    fprintf(stderr,
-            "usage: uup-example [options]\n"
-            "       start the example application\n\n"
-            "options:\n"
-            "  -f <dir>  directory that contains config (default .)\n"
-            "  -h        display this usage text\n"
-            "  -a <ip>   IP address for rules server (default %s)\n"
-            "  -p <port> port for rules server (default %u)\n"
-            "  -s <dir>  save known-good configuration files here for emergency use on startup\n"
-            "  -G <path> Graphite stats log file\n",
-            DEFAULT_RULES_ADDR,
-            DEFAULT_RULES_PORT);
-}
+
 
 static bool
 uup_example_parse_args(struct uup_example_config *config, int argc, char **argv)
@@ -97,43 +87,109 @@ uup_example_parse_args(struct uup_example_config *config, int argc, char **argv)
 
 DONE:
     if (!ret) {
-        uup_example_usage();
         exit(1);
     }
 
     return ret;
 }
 
+double getHighResolutionTime(void);
+
+
+
 int
 main(int argc, char **argv)
 {
+    // const char *jsonString;
+    // size_t bufferSize = 0;
+    // printf("ENTER THE JSON STRING");
+    // getline(&jsonString, &bufferSize, stdin);
+
+    double start_time1, end_time1,start_time2, end_time2;
+    double execution_time,execution_time2;
+
+    const char *jsonString = "{\"org\":1234,\"value\":-123}";
     int ret = 1;
     struct uup_example_config *config = uup_example_new_config();
 
     if (!uup_example_parse_args(config, argc, argv)) {
         goto EXIT;
     }
+    printf("UUP Example Application started \n");
+    printf("gconfig directory: %s \n", config->config_directory);
+    printf("graphitelog path: %s \n", config->graphitelog_path ?: "<unset>");
 
-    kit_infolog_printf("UUP Example Application started");
-    kit_infolog_printf("  config directory: %s", config->config_directory);
-    kit_infolog_printf("  graphitelog path: %s", config->graphitelog_path ?: "<unset>");
+    printf("HELLO ASHUTOSH \n");
 
-    /* Setup the configuration system */
+
+    cJSON *json = cJSON_Parse(jsonString);
+
+
+
+    if (json == NULL) {
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL) {
+            printf("Error before: %s\n", error_ptr);
+        }
+        goto EXIT;
+    }
+
+    start_time1 = getHighResolutionTime();
+
+
+    printf(" \n \n \n \n CONFIGURATION STARTED \n \n \n \n \n ");
+
+
     if (!uup_example_setup_conf(config)) {
         goto EXIT;
     }
 
-    /* Start the rules TCP server */
-    if (!uup_example_rules_start(config)) {
+
+
+    end_time1 = getHighResolutionTime();
+
+
+    execution_time = (double)(end_time1 - start_time1);
+
+
+    printf(" \n \n \n \n CONFIGURATION FINISHED,USE STARTED AND EXECUTION TIME FOR CONFIGURATION IS  %.2f \n \n \n \n ",execution_time);
+
+    start_time2=getHighResolutionTime();
+
+
+
+
+
+    if(!uup_example_rules_startt(config,json))
+    {
         goto EXIT;
     }
 
-    /* Enter the configuration loading loop */
-    ret = uup_example_conf_loop(config);
+    end_time2 = getHighResolutionTime();
+    execution_time2 = (double)(end_time2 - start_time2);
+
+
+
+    printf("BYEE ASHUTOSH  %.2f \n",execution_time2);
+
+
+    return 0;
+
+
+
+
+
+    
 
 EXIT:
-    uup_example_cleanup(config);
     kit_infolog_printf("Exiting");
 
     return ret;
+}
+
+
+double getHighResolutionTime(void) {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0;
 }

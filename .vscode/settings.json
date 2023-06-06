@@ -1,6 +1,11 @@
 {
     "cmake.sourceDirectory": "/home/ashugup3/uup/cJSON",
     "files.associations": {
-        "in.h": "c"
+        "in.h": "c",
+        "conf.h": "c",
+        "uup-example-config.h": "c",
+        "crl.h": "c",
+        "policy.h": "c",
+        "uup-example-rules.h": "c"
     }
 }
